@@ -47,10 +47,13 @@ export function literal<A>(y: A): Parser<A, A> {
 }
 
 export function many<A, B>(p: Parser<A, B>): Parser<A, B[]> {
-  return p
-    .then(many(p))
-    .using(([a, b]) => [a, ...b])
-    .or(succeed([]));
+  return new Parser((arr) =>
+    p
+      .then(many(p))
+      .using(([a, b]) => [a, ...b])
+      .or(succeed([]))
+      .parse(arr),
+  );
 }
 
 export function some<A, B>(p: Parser<A, B>): Parser<A, B[]> {
