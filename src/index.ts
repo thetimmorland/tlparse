@@ -1,18 +1,18 @@
 import { ParseResult, Ok, Fail, Error } from './parse-result';
 
-export function ok<A>(val: A) {
-  return new Ok(val);
+export function ok<A, B>(res: A, inp: B): ParseResult<[A, B]> {
+  return new Ok([res, inp]);
 }
 
-export function fail(msg: string) {
+export function fail(msg: string): ParseResult<unknown> {
   return new Fail(msg);
 }
 
-export function error(msg: string) {
+export function error(msg: string): ParseResult<unknown> {
   return new Error(msg);
 }
 
-export class Parser<A, B> {
+export default class Parser<A, B> {
   parse: (inp: A[]) => ParseResult<[B, A[]]>;
 
   constructor(parse: (arr: A[]) => ParseResult<[B, A[]]>) {
@@ -25,21 +25,21 @@ export class Parser<A, B> {
 
   then<C>(p: Parser<A, C>): Parser<A, [B, C]> {
     return new Parser((arr) =>
-      this.parse(arr).bind(([val1, inp1]) => p.parse(inp1).bind(([val2, inp2]) => ok([[val1, val2], inp2]))),
+      this.parse(arr).bind(([val1, inp1]) => p.parse(inp1).bind(([val2, inp2]) => ok([val1, val2], inp2))),
     );
   }
 
   using<C>(f: (x: B) => C): Parser<A, C> {
-    return new Parser((arr) => this.parse(arr).bind(([val, inp]) => ok([f(val), inp])));
+    return new Parser((arr) => this.parse(arr).bind(([val, inp]) => ok(f(val), inp)));
   }
 }
 
 export function succeed<A, B>(val: B): Parser<A, B> {
-  return new Parser((inp) => ok([val, inp]));
+  return new Parser((inp) => ok(val, inp));
 }
 
 export function satisfy<A>(f: (arg: A) => boolean): Parser<A, A> {
-  return new Parser(([x, ...xs]) => (x && f(x) ? ok([x, xs]) : (fail('') as Fail<[A, A[]]>)));
+  return new Parser(([x, ...xs]) => (x && f(x) ? ok(x, xs) : (fail('') as Fail<[A, A[]]>)));
 }
 
 export function literal<A>(y: A): Parser<A, A> {

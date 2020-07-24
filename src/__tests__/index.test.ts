@@ -1,15 +1,20 @@
-// import Parser, { many } from '../index';
+import Parser, { ok, fail, error, succeed, literal, many, some } from '../index';
 
-// test('succeed', () => {
-//   const p = succeed('a');
-//   expect(p.parse('foo'.split(''))).toStrictEqual(ok({ result: 'a', input: ['f', 'o', 'o'] }));
-// });
+test('succeed', () => {
+  const p = succeed('a');
+  expect(p.parse('foo'.split(''))).toStrictEqual(ok('a', ['f', 'o', 'o']));
+});
 
-// test('or', () => {
-//   const p = literal('a').or(literal('b'));
-//   expect(p.parse('ab'.split(''))).toStrictEqual(ok({ result: 'a', input: ['b'] }));
-//   expect(p.parse('bc'.split(''))).toStrictEqual(ok({ result: 'b', input: ['c'] }));
-// });
+test('literal', () => {
+  const p = literal('a');
+  expect(p.parse(['a', 'b'])).toStrictEqual(ok('a', ['b']));
+});
+
+test('or', () => {
+  const p = literal('a').or(literal('b'));
+  expect(p.parse(['a', 'b'])).toStrictEqual(ok('a', ['b']));
+  expect(p.parse(['b', 'c'])).toStrictEqual(ok('b', ['c']));
+});
 
 // test('then', () => {
 //   const p = satisfy((x) => x === 'a').then(satisfy((x) => x === 'b'));
