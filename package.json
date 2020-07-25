@@ -15,8 +15,12 @@
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "combinator",
+    "parser",
+    "typescript"
+  ],
+  "author": "Timothy Morland",
   "license": "ISC",
   "devDependencies": {
     "prettier": "^2.0.5",

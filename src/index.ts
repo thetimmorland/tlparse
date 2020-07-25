@@ -1,26 +1,73 @@
-import { ParseResult, Ok, Fail, Error } from './parse-result';
+export type ParseResult<A, B> = [B, A[]];
 
-export function ok<A, B>(res: A, inp: B): ParseResult<[A, B]> {
+export abstract class Maybe<A> {
+  abstract or(val: Maybe<A>): Maybe<A>;
+  abstract bind<B>(f: (x: A) => Maybe<B>): Maybe<B>;
+}
+
+export class Ok<A> extends Maybe<A> {
+  readonly val: A;
+  constructor(val: A) {
+    super();
+    this.val = val;
+  }
+  or() {
+    return this;
+  }
+  bind<B>(f: (x: A) => Maybe<B>) {
+    return f(this.val);
+  }
+}
+
+export class Fail<A> extends Maybe<A> {
+  readonly val: string;
+  constructor(val: string) {
+    super();
+    this.val = val;
+  }
+  or(val: Maybe<A>) {
+    return val;
+  }
+  bind<B>(f: (x: A) => Maybe<B>) {
+    return (this as unknown) as Fail<B>;
+  }
+}
+
+export class Error<A> extends Maybe<A> {
+  readonly val: string;
+  constructor(val: string) {
+    super();
+    this.val = val;
+  }
+  or() {
+    return this;
+  }
+  bind<B>(f: (x: A) => Maybe<B>) {
+    return (this as unknown) as Error<B>;
+  }
+}
+
+export function ok<A, B>(res: B, inp: A[]): Maybe<ParseResult<A, B>> {
   return new Ok([res, inp]);
 }
 
-export function fail(msg: string): ParseResult<unknown> {
+export function fail(msg: string): Maybe<unknown> {
   return new Fail(msg);
 }
 
-export function error(msg: string): ParseResult<unknown> {
+export function error(msg: string): Maybe<unknown> {
   return new Error(msg);
 }
 
 export default class Parser<A, B> {
-  parse: (inp: A[]) => ParseResult<[B, A[]]>;
+  parse: (inp: A[]) => Maybe<ParseResult<A, B>>;
 
-  constructor(parse: (arr: A[]) => ParseResult<[B, A[]]>) {
+  constructor(parse: (arr: A[]) => Maybe<ParseResult<A, B>>) {
     this.parse = parse;
   }
 
   or(p: Parser<A, B>): Parser<A, B> {
-    return new Parser((arr) => this.parse(arr).alt(p.parse(arr)));
+    return new Parser((arr) => this.parse(arr).or(p.parse(arr)));
   }
 
   then<C>(p: Parser<A, C>): Parser<A, [B, C]> {
